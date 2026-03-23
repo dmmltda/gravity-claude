@@ -176,7 +176,7 @@ export function NovaEstimativa() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div className="field">
               <label className="label">Descrição / Referência</label>
-              <input className="input" type="text" placeholder="Ex: Importação Componentes China Q1/2026" value={form.descricao} onChange={(e) => set('descricao', e.target.value)} />
+              <input data-testid="input-descricao" className="input" type="text" placeholder="Ex: Importação Componentes China Q1/2026" value={form.descricao} onChange={(e) => set('descricao', e.target.value)} />
             </div>
           </div>
         )}
@@ -188,6 +188,7 @@ export function NovaEstimativa() {
               <div className="field">
                 <label className="label">NCM (8 dígitos)</label>
                 <input
+                  data-testid="input-ncm"
                   className="input"
                   type="text"
                   maxLength={8}
@@ -297,7 +298,7 @@ export function NovaEstimativa() {
         <button className="btn btn-secondary" onClick={salvarRascunho} disabled={salvando}>
           Salvar Rascunho
         </button>
-        <button className="btn btn-primary" onClick={salvarECalcular} disabled={salvando || !form.descricao || !form.ncm || !form.valor_produto}>
+        <button data-testid="btn-calcular" className="btn btn-primary" onClick={salvarECalcular} disabled={salvando || !form.descricao || !form.ncm || !form.valor_produto}>
           {salvando ? 'Calculando...' : 'Calcular Landed Cost →'}
         </button>
       </div>
