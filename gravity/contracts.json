@@ -5,17 +5,17 @@
       "base": "/api/v1",
       "description": "Serviço central de configuração — Clerk, multi-tenant, billing, permissões",
       "endpoints": [
-        { "method": "POST", "path": "/auth/webhook", "description": "Webhook Clerk (user.created, user.deleted, organization.created)" },
-        { "method": "POST", "path": "/tenants", "description": "Criar tenant" },
-        { "method": "GET",  "path": "/tenants/:id", "description": "Buscar tenant por ID" },
-        { "method": "GET",  "path": "/tenants/:id/companies", "description": "Listar empresas do tenant" },
-        { "method": "POST", "path": "/companies/tenants/:tenantId/companies", "description": "Criar empresa no tenant" },
-        { "method": "GET",  "path": "/companies/:id", "description": "Buscar empresa por ID" },
-        { "method": "POST", "path": "/users/membership", "description": "Criar membership de usuário no tenant" },
-        { "method": "GET",  "path": "/users/tenants/:tenantId/users", "description": "Listar usuários do tenant" },
-        { "method": "POST", "path": "/users/:membershipId/enable", "description": "Habilitar usuário em uma empresa" },
-        { "method": "GET",  "path": "/billing/:tenantId/subscriptions", "description": "Listar assinaturas do tenant" },
-        { "method": "POST", "path": "/billing/subscribe", "description": "Criar assinatura de produto" }
+        { "method": "POST", "path": "/auth/webhook",                        "description": "Webhook Clerk (user.created, user.deleted, organization.created)" },
+        { "method": "POST", "path": "/tenants",                             "description": "Criar tenant" },
+        { "method": "GET",  "path": "/tenants/:id",                         "description": "Buscar tenant por ID" },
+        { "method": "GET",  "path": "/tenants/:id/companies",               "description": "Listar empresas do tenant" },
+        { "method": "POST", "path": "/companies/tenants/:tenantId/companies","description": "Criar empresa no tenant" },
+        { "method": "GET",  "path": "/companies/:id",                       "description": "Buscar empresa por ID" },
+        { "method": "POST", "path": "/users/membership",                    "description": "Criar membership de usuário no tenant" },
+        { "method": "GET",  "path": "/users/tenants/:tenantId/users",       "description": "Listar usuários do tenant" },
+        { "method": "POST", "path": "/users/:membershipId/enable",          "description": "Habilitar usuário em uma empresa" },
+        { "method": "GET",  "path": "/billing/:tenantId/subscriptions",     "description": "Listar assinaturas do tenant" },
+        { "method": "POST", "path": "/billing/subscribe",                   "description": "Criar assinatura de produto" }
       ]
     },
     "configurador-internal": {
@@ -23,6 +23,199 @@
       "description": "Endpoints internos S2S do configurador — requer x-internal-key",
       "endpoints": [
         { "method": "GET", "path": "/check-access", "description": "Verificar acesso do usuário a um produto/empresa (S2S)" }
+      ]
+    },
+    "atividades": {
+      "base": "/api/v1/atividades",
+      "description": "Serviço de atividades/tarefas do tenant",
+      "endpoints": [
+        { "method": "GET",    "path": "/",        "description": "Listar atividades com filtros (status, user_id, product_id, due_date)" },
+        { "method": "GET",    "path": "/mine",    "description": "Atividades do usuário autenticado" },
+        { "method": "GET",    "path": "/stats",   "description": "Contagem de atividades por status (para dashboard)" },
+        { "method": "POST",   "path": "/",        "description": "Criar atividade" },
+        { "method": "GET",    "path": "/:id",     "description": "Buscar atividade por ID" },
+        { "method": "PUT",    "path": "/:id",     "description": "Atualizar atividade" },
+        { "method": "DELETE", "path": "/:id",     "description": "Deletar atividade" }
+      ]
+    },
+    "cronometro": {
+      "base": "/api/v1/cronometro",
+      "description": "Serviço de cronômetro e sessões de tempo por atividade",
+      "endpoints": [
+        { "method": "GET",    "path": "/active",                    "description": "Timer ativo do usuário autenticado" },
+        { "method": "GET",    "path": "/report",                    "description": "Relatório de sessões por período e usuário" },
+        { "method": "PATCH",  "path": "/sessions/:id",              "description": "Editar metadados de uma sessão" },
+        { "method": "DELETE", "path": "/sessions/:id",              "description": "Deletar sessão de tempo" },
+        { "method": "GET",    "path": "/:activity_id",              "description": "Sessões de uma atividade" },
+        { "method": "POST",   "path": "/:activity_id/start",        "description": "Iniciar ou retomar timer de atividade" },
+        { "method": "POST",   "path": "/:activity_id/pause",        "description": "Pausar timer de atividade" },
+        { "method": "POST",   "path": "/:activity_id/stop",         "description": "Parar timer e salvar sessão" },
+        { "method": "POST",   "path": "/:activity_id/manual",       "description": "Lançamento manual de tempo" }
+      ]
+    },
+    "email": {
+      "base": "/api/v1/email",
+      "description": "Serviço de email transacional e inbox (Resend) com análise Gabi",
+      "endpoints": [
+        { "method": "GET",  "path": "/threads",           "description": "Listar threads com filtros (status, sentiment, paginação)" },
+        { "method": "GET",  "path": "/threads/:id",       "description": "Buscar thread com mensagens" },
+        { "method": "POST", "path": "/send",              "description": "Enviar email transacional" },
+        { "method": "POST", "path": "/webhook",           "description": "Webhook Resend (email.received)" },
+        { "method": "PUT",  "path": "/threads/:id/status","description": "Atualizar status da thread (open/archived/resolved)" },
+        { "method": "GET",  "path": "/stats",             "description": "Estatísticas de email do tenant" }
+      ]
+    },
+    "whatsapp": {
+      "base": "/api/v1/whatsapp",
+      "description": "Serviço de WhatsApp via Meta Cloud API com SSE",
+      "endpoints": [
+        { "method": "GET",  "path": "/conversations",            "description": "Listar conversas com filtros (status, temperatura, vinculado)" },
+        { "method": "GET",  "path": "/conversations/:id",        "description": "Buscar conversa com mensagens" },
+        { "method": "POST", "path": "/conversations/:id/send",   "description": "Enviar mensagem de texto" },
+        { "method": "PUT",  "path": "/conversations/:id/close",  "description": "Encerrar conversa com análise Gabi" },
+        { "method": "GET",  "path": "/webhook",                  "description": "Verificação inicial Meta Webhook (hub.challenge)" },
+        { "method": "POST", "path": "/webhook",                  "description": "Webhook inbound Meta API (mensagens recebidas)" },
+        { "method": "GET",  "path": "/stream",                   "description": "SSE — eventos em tempo real do tenant" }
+      ]
+    },
+    "dashboard": {
+      "base": "/api/v1/dashboard",
+      "description": "Serviço de dashboard com registro de widgets e KPIs",
+      "endpoints": [
+        { "method": "GET",  "path": "/",                    "description": "Listar widgets salvos do tenant (ordenados por posição)" },
+        { "method": "GET",  "path": "/widgets",             "description": "Listar widgets disponíveis no Registry (filtro: product_id)" },
+        { "method": "POST", "path": "/widgets/register",    "description": "Registrar novo widget no Registry em runtime" },
+        { "method": "PUT",  "path": "/widgets/:id",         "description": "Atualizar posição, config ou estado de um widget" },
+        { "method": "GET",  "path": "/stats",               "description": "KPIs do tenant (tarefas, emails, notificações, timers)" },
+        { "method": "GET",  "path": "/stream",              "description": "SSE — stats em tempo real (polling 5s)" }
+      ]
+    },
+    "relatorios": {
+      "base": "/api/v1/relatorios",
+      "description": "Serviço de relatórios com exportação em múltiplos formatos e agendamento",
+      "endpoints": [
+        { "method": "GET",    "path": "/saved",                     "description": "Listar relatórios salvos do tenant" },
+        { "method": "POST",   "path": "/saved",                     "description": "Salvar configuração de relatório" },
+        { "method": "PUT",    "path": "/saved/:id",                 "description": "Atualizar relatório salvo" },
+        { "method": "DELETE", "path": "/saved/:id",                 "description": "Deletar relatório salvo e seu agendamento" },
+        { "method": "GET",    "path": "/saved/:id/schedule",        "description": "Ver agendamento de um relatório" },
+        { "method": "POST",   "path": "/saved/:id/schedule",        "description": "Criar agendamento (frequency, channels, format)" },
+        { "method": "PUT",    "path": "/saved/:id/schedule",        "description": "Atualizar agendamento" },
+        { "method": "DELETE", "path": "/saved/:id/schedule",        "description": "Cancelar agendamento" },
+        { "method": "POST",   "path": "/saved/:id/share",           "description": "Compartilhar relatório com outro usuário" },
+        { "method": "DELETE", "path": "/saved/:id/share/:user_id",  "description": "Remover acesso de compartilhamento" },
+        { "method": "GET",    "path": "/:report_id/export",         "description": "Exportar dados (csv, excel, json, xml, txt)" },
+        { "method": "GET",    "path": "/:report_id",                "description": "Dados do relatório com filtros e paginação" }
+      ]
+    },
+    "historico": {
+      "base": "/api/v1/historico",
+      "description": "Serviço de histórico e auditoria de ações do tenant",
+      "endpoints": [
+        { "method": "GET", "path": "/",       "description": "Listar logs de auditoria com filtros e paginação" },
+        { "method": "GET", "path": "/stats",  "description": "Contagem de logs por tipo de ação e período" },
+        { "method": "GET", "path": "/:id",    "description": "Log específico com diff completo" }
+      ]
+    },
+    "notificacoes": {
+      "base": "/api/v1/notificacoes",
+      "description": "Serviço de notificações em tempo real com SSE e filas de processamento",
+      "endpoints": [
+        { "method": "GET",    "path": "/",            "description": "Listar 50 notificações mais recentes do usuário" },
+        { "method": "GET",    "path": "/stream",      "description": "SSE — notificações em tempo real com heartbeat 30s" },
+        { "method": "PUT",    "path": "/read-all",    "description": "Marcar todas as notificações como lidas" },
+        { "method": "PUT",    "path": "/:id/read",    "description": "Marcar uma notificação como lida" },
+        { "method": "DELETE", "path": "/:id",         "description": "Dispensar (deletar) notificação" }
+      ]
+    },
+    "agendamento": {
+      "base": "/api/v1/calendar",
+      "description": "Serviço de agendamento e calendário do tenant",
+      "endpoints": [
+        { "method": "GET",    "path": "/",              "description": "Listar eventos do calendário com filtros" },
+        { "method": "POST",   "path": "/",              "description": "Criar evento (meeting, task, reminder, deadline, custom)" },
+        { "method": "GET",    "path": "/today",         "description": "Eventos do usuário autenticado para hoje" },
+        { "method": "GET",    "path": "/availability",  "description": "Slots livres de um usuário em uma data" },
+        { "method": "GET",    "path": "/:id",           "description": "Buscar evento por ID" },
+        { "method": "PUT",    "path": "/:id",           "description": "Atualizar evento" },
+        { "method": "DELETE", "path": "/:id",           "description": "Deletar evento" }
+      ]
+    },
+    "gabi": {
+      "base": "/api/v1/gabi",
+      "description": "Assistente de IA do tenant com permissões espelhadas — resposta via SSE",
+      "endpoints": [
+        { "method": "POST",   "path": "/chat",                  "description": "Enviar mensagem para Gabi (resposta via SSE streaming)" },
+        { "method": "GET",    "path": "/conversations",          "description": "Listar conversas do usuário" },
+        { "method": "GET",    "path": "/conversations/:id",      "description": "Buscar conversa com mensagens" },
+        { "method": "DELETE", "path": "/conversations/:id",      "description": "Deletar conversa (requer confirm: true no body)" },
+        { "method": "POST",   "path": "/upload",                 "description": "Upload de arquivo para contexto da conversa" },
+        { "method": "GET",    "path": "/usage",                  "description": "Uso mensal estimado em USD por produto" },
+        { "method": "PUT",    "path": "/settings",               "description": "Atualizar configurações de limite de custo" }
+      ]
+    },
+    "api-cockpit": {
+      "base": "/api/v1/cockpit",
+      "description": "Gerenciamento de tokens de API e webhooks por produto",
+      "endpoints": [
+        { "method": "GET",    "path": "/tokens",              "description": "Listar tokens de acesso ativos" },
+        { "method": "POST",   "path": "/tokens",              "description": "Gerar novo token (plain text exibido apenas uma vez)" },
+        { "method": "DELETE", "path": "/tokens/:id",          "description": "Revogar token" },
+        { "method": "GET",    "path": "/docs",                "description": "Documentação OpenAPI gerada dos schemas Zod" },
+        { "method": "GET",    "path": "/usage",               "description": "Consumo de API por período (by_day, by_endpoint)" },
+        { "method": "GET",    "path": "/webhooks",            "description": "Listar webhooks com histórico de entregas" },
+        { "method": "POST",   "path": "/webhooks",            "description": "Criar webhook (secret exibido apenas uma vez)" },
+        { "method": "PUT",    "path": "/webhooks/:id",        "description": "Atualizar webhook" },
+        { "method": "POST",   "path": "/webhooks/:id/test",   "description": "Disparar teste de webhook" },
+        { "method": "DELETE", "path": "/webhooks/:id",        "description": "Deletar webhook" }
+      ]
+    },
+    "conector-erp": {
+      "base": "/api/v1/erp",
+      "description": "Conector para sistemas ERP (SAP, TOTVS, Oracle) via OData/HANA com consulta em linguagem natural",
+      "endpoints": [
+        { "method": "POST",   "path": "/connections",              "description": "Criar conexão ERP com credenciais criptografadas" },
+        { "method": "GET",    "path": "/connections",              "description": "Buscar conexão ERP do tenant/produto" },
+        { "method": "PUT",    "path": "/connections/:id",          "description": "Atualizar conexão ERP" },
+        { "method": "DELETE", "path": "/connections/:id",          "description": "Deletar conexão ERP" },
+        { "method": "POST",   "path": "/connections/:id/test",     "description": "Testar conectividade com o ERP" },
+        { "method": "POST",   "path": "/query",                    "description": "Consulta ERP em linguagem natural (OData/HANA)" },
+        { "method": "GET",    "path": "/logs/sync",                "description": "Logs de sincronização" },
+        { "method": "GET",    "path": "/logs/query",               "description": "Logs de consultas" },
+        { "method": "GET",    "path": "/alerts",                   "description": "Listar alertas do conector" },
+        { "method": "POST",   "path": "/alerts",                   "description": "Criar alerta manualmente" },
+        { "method": "POST",   "path": "/alerts/:id/dismiss",       "description": "Dispensar alerta" }
+      ]
+    },
+    "helpdesk": {
+      "base": "/api/v1/helpdesk",
+      "description": "Template de helpdesk reutilizável por produto — tickets, filas e SLA",
+      "endpoints": [
+        { "method": "GET",  "path": "/tickets",                  "description": "Listar tickets com filtros (status, priority, assigned_to)" },
+        { "method": "POST", "path": "/tickets",                  "description": "Criar ticket" },
+        { "method": "GET",  "path": "/tickets/:id",              "description": "Buscar ticket com mensagens e status SLA" },
+        { "method": "PUT",  "path": "/tickets/:id",              "description": "Atualizar ticket (status, prioridade, SLA)" },
+        { "method": "POST", "path": "/tickets/:id/messages",     "description": "Adicionar mensagem a um ticket" },
+        { "method": "GET",  "path": "/queues",                   "description": "Listar filas de atendimento do produto" },
+        { "method": "POST", "path": "/queues",                   "description": "Criar fila de atendimento" },
+        { "method": "PUT",  "path": "/queues/:id",               "description": "Atualizar fila (SLA, agentes, auto-assign)" },
+        { "method": "GET",  "path": "/stats",                    "description": "Estatísticas do helpdesk (open, avg resolution, SLA compliance)" }
+      ]
+    },
+    "simula-custo": {
+      "base": "/api/v1",
+      "description": "Produto SimulaCusto — Simulador de Custo de Importação (Comex)",
+      "endpoints": [
+        { "method": "GET",  "path": "/estimativas",                "description": "Listar estimativas do tenant com filtros (status, paginação)" },
+        { "method": "POST", "path": "/estimativas",                "description": "Criar estimativa com taxas" },
+        { "method": "GET",  "path": "/estimativas/:id",            "description": "Buscar estimativa por ID" },
+        { "method": "PUT",  "path": "/estimativas/:id",            "description": "Atualizar estimativa (exceto arquivadas)" },
+        { "method": "POST", "path": "/estimativas/:id/calcular",   "description": "Calcular landed cost (II, IPI, PIS, COFINS, ICMS, FCP)" },
+        { "method": "DELETE","path": "/estimativas/:id",           "description": "Arquivar estimativa (soft delete — status=arquivada)" },
+        { "method": "GET",  "path": "/ncm/:ncm/aliquotas",         "description": "Buscar alíquotas por NCM (cache ou fallback)" },
+        { "method": "POST", "path": "/ncm/:ncm/atualizar",         "description": "Atualizar alíquotas de um NCM (dev only)" },
+        { "method": "GET",  "path": "/cambio/:moeda",              "description": "Buscar cotação PTAX por moeda (cache ou fallback)" },
+        { "method": "POST", "path": "/cambio/atualizar",           "description": "Sincronizar cotações USD/EUR com BACEN" }
       ]
     }
   }
