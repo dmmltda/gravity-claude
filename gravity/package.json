@@ -1,0 +1,21 @@
+{
+  "name": "gravity",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "workspaces": [
+    "nucleo-global/*",
+    "servicos-global/**",
+    "produtos/*"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "dev": "node --watch --loader ts-node/esm scripts/dev.ts",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "test:unit:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "lint": "tsc --noEmit"
+  }
+}

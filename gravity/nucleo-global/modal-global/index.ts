@@ -1,0 +1,5 @@
+export { ModalProvider } from './modal-provider.js'
+export { ModalOverlay } from './modal-overlay.js'
+export { useModal, useModalStandalone, ModalContext } from './use-modal.js'
+export { modalReducer, estadoInicial, criarModalConfig } from './modal-manager.js'
+export type { ModalAba, ModalConfig, ModalState, ModalAction } from './types.js'

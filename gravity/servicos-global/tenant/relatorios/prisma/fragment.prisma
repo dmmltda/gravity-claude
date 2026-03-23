@@ -1,0 +1,40 @@
+// servicos-global/tenant/relatorios/prisma/fragment.prisma
+
+model SavedReport {
+  id         String  @id @default(cuid())
+  tenant_id  String
+  user_id    String
+  report_id  String           // ID do tipo de relatório base
+  product_id String?          // null = multi-produto (relatório unificado)
+  sources    Json    @default("[]")  // [{ productId, tableId, columns }]
+  name       String           // ex: "Empresas Ativas Sul"
+  filters    Json    @default("{}")  // filtros salvos
+  columns    Json    @default("[]")  // colunas visíveis e ordem
+  join_type  String  @default("left") // left | inner
+  is_shared  Boolean @default(false)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([tenant_id])
+  @@index([tenant_id, user_id])
+  @@index([tenant_id, report_id])
+  @@index([tenant_id, product_id])
+}
+
+model ReportSchedule {
+  id              String  @id @default(cuid())
+  tenant_id       String
+  saved_report_id String
+  frequency       String           // once|daily|weekly|monthly|custom
+  cron_expression String?
+  next_run_at     DateTime
+  channels        Json             // { email:[...], whatsapp:[...], notify:[...] }
+  format          String  @default("csv")  // csv|excel|json|xml|txt
+  active          Boolean @default(true)
+  last_run_at     DateTime?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@index([tenant_id])
+  @@index([active, next_run_at])
+}

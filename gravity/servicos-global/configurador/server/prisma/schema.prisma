@@ -1,0 +1,91 @@
+// ARQUIVO GERADO PELO CONFIGURADOR — não editar manualmente após composição
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id            String           @id @default(cuid())
+  name          String
+  plan          String           @default("trial")
+  createdAt     DateTime         @default(now()) @map("created_at")
+  companies     Company[]
+  memberships   UserMembership[]
+  subscriptions Subscription[]
+}
+
+model Company {
+  id          String           @id @default(cuid())
+  tenantId    String           @map("tenant_id")
+  name        String
+  subdomain   String?          @unique
+  createdAt   DateTime         @default(now()) @map("created_at")
+  tenant      Tenant           @relation(fields: [tenantId], references: [id])
+  enablements UserEnablement[]
+
+  @@index([tenantId])
+}
+
+model UserMembership {
+  id          String           @id @default(cuid())
+  clerkId     String           @map("clerk_id")
+  tenantId    String           @map("tenant_id")
+  role        String           @default("standard")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  tenant      Tenant           @relation(fields: [tenantId], references: [id])
+  enablements UserEnablement[]
+
+  @@unique([clerkId, tenantId])
+  @@index([tenantId])
+}
+
+model UserEnablement {
+  id           String              @id @default(cuid())
+  membershipId String              @map("membership_id")
+  companyId    String              @map("company_id")
+  createdAt    DateTime            @default(now()) @map("created_at")
+  membership   UserMembership      @relation(fields: [membershipId], references: [id])
+  company      Company             @relation(fields: [companyId], references: [id])
+  permissions  ProductPermission[]
+
+  @@unique([membershipId, companyId])
+  @@index([companyId])
+}
+
+model ProductPermission {
+  id           String         @id @default(cuid())
+  enablementId String         @map("enablement_id")
+  productId    String         @map("product_id")
+  permissions  Json           @default("{}")
+  enablement   UserEnablement @relation(fields: [enablementId], references: [id])
+
+  @@unique([enablementId, productId])
+}
+
+model Subscription {
+  id        String   @id @default(cuid())
+  tenantId  String   @map("tenant_id")
+  productId String   @map("product_id")
+  status    String   @default("trial")
+  stripeId  String?  @map("stripe_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+}
+
+model SupplierTenantAccess {
+  id        String   @id @default(cuid())
+  clerkId   String   @map("clerk_id")
+  tenantId  String   @map("tenant_id")
+  status    String   @default("active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([clerkId, tenantId])
+  @@index([tenantId])
+}

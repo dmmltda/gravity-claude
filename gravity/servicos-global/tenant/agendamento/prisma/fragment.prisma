@@ -1,0 +1,29 @@
+// fragment.prisma — Agendamento Service
+// Composto pelo Coordenador via scripts/compose-tenant-schema.ts
+// NÃO editar manualmente.
+
+model CalendarEvent {
+  id                 String   @id @default(cuid())
+  tenant_id          String
+  user_id            String
+  product_id         String?
+  title              String
+  description        String?
+  starts_at          DateTime
+  ends_at            DateTime
+  all_day            Boolean  @default(false)
+  type               String   // meeting | task | reminder | deadline | custom
+  linked_activity_id String?
+  recurrence         Json?
+  attendees          Json     @default("[]")
+  location           String?
+  color              String?
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+  @@index([tenant_id, user_id])
+  @@index([tenant_id, starts_at])
+  @@index([tenant_id, user_id, starts_at])
+}

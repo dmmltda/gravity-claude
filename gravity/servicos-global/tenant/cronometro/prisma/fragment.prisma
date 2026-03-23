@@ -1,0 +1,47 @@
+// servicos-global/tenant/cronometro/prisma/fragment.prisma
+// Composto pelo Coordenador via scripts/compose-tenant-schema.ts — não editar schema.prisma diretamente.
+
+model TimerSession {
+  id               String    @id @default(cuid())
+  tenant_id        String
+  user_id          String
+  activity_id      String
+  product_id       String?
+
+  // Dados da sessão
+  started_at       DateTime
+  ended_at         DateTime?
+  duration_minutes Int?      // null = timer ainda ativo
+
+  is_manual        Boolean   @default(false)
+
+  // Assunto e vínculo
+  subject          String?   // texto livre do assunto
+  linked_type      String?   // nf | meeting | process | custom
+  linked_id        String?   // ID do item vinculado
+  linked_label     String?   // label de exibição
+
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+  @@index([tenant_id, user_id])
+  @@index([tenant_id, activity_id])
+  @@index([tenant_id, user_id, started_at])
+}
+
+model TimerActive {
+  id                  String    @id @default(cuid())
+  tenant_id           String
+  user_id             String    @unique // um timer ativo por usuário
+  activity_id         String
+  product_id          String?
+  started_at          DateTime
+  paused_at           DateTime?
+  accumulated_seconds Int       @default(0) // segundos acumulados antes de pausas
+
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+  @@index([tenant_id, user_id])
+}

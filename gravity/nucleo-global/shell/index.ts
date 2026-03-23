@@ -1,0 +1,6 @@
+export { Shell } from './shell.js'
+export { useShellStore } from './state/store.js'
+export { emit, on } from './events.js'
+export { useShell } from './use-shell.js'
+export type { ShellState, Notification } from './state/types.js'
+export type { NavItem } from './navigation/types.js'

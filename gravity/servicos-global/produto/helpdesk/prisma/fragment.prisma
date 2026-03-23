@@ -1,0 +1,70 @@
+// fragment.prisma — Helpdesk
+// Composto no schema do produto via compose-schema.js
+// Nunca editar schema.prisma diretamente
+
+model HelpdeskTicket {
+  id          String    @id @default(cuid())
+  tenant_id   String
+  product_id  String
+  user_id     String
+  assigned_to String?
+
+  title       String
+  description String    @db.Text
+  status      String    @default("open")     // open|in_progress|waiting|resolved|closed
+  priority    String    @default("medium")   // low|medium|high|critical
+  category    String?
+
+  sla_deadline DateTime?
+  sla_breached Boolean   @default(false)
+
+  resolved_at DateTime?
+  closed_at   DateTime?
+
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  messages HelpdeskMessage[]
+
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+  @@index([tenant_id, user_id])
+  @@index([tenant_id, status])
+  @@index([tenant_id, assigned_to])
+}
+
+model HelpdeskMessage {
+  id        String   @id @default(cuid())
+  ticket_id String
+  tenant_id String
+  user_id   String
+
+  content     String  @db.Text
+  is_internal Boolean @default(false)
+  attachments Json    @default("[]")
+
+  created_at DateTime @default(now())
+
+  ticket HelpdeskTicket @relation(fields: [ticket_id], references: [id])
+
+  @@index([ticket_id])
+  @@index([tenant_id])
+}
+
+model HelpdeskQueue {
+  id         String   @id @default(cuid())
+  tenant_id  String
+  product_id String
+
+  name        String
+  description String?
+  sla_hours   Int     @default(24)
+  auto_assign Boolean @default(false)
+  agents      Json    @default("[]")
+  active      Boolean @default(true)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([tenant_id, product_id])
+}

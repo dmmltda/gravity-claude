@@ -1,0 +1,72 @@
+// fragment.prisma — WhatsApp
+// Composto pelo Coordenador em servicos-global/tenant/prisma/schema.prisma
+
+model WhatsAppConversation {
+  id                     String    @id @default(cuid())
+  tenant_id              String
+  wa_phone_number        String
+  status                 String    @default("open")
+  contact_id             String?
+  company_id             String?
+  contact_nome           String?
+  company_nome           String?
+  activity_id            String?
+  ai_enabled             Boolean   @default(false)
+  opened_at              DateTime  @default(now())
+  closed_at              DateTime?
+  gabi_temperatura       String?
+  gabi_temperatura_score Int?
+  gabi_resumo            String?
+  gabi_acoes_sugeridas   Json?
+
+  @@index([tenant_id])
+  @@index([tenant_id, status])
+  @@index([tenant_id, wa_phone_number])
+}
+
+model WhatsAppMessage {
+  id              String   @id @default(cuid())
+  tenant_id       String
+  conversation_id String
+  wa_message_id   String?  @unique
+  direction       String
+  content_type    String   @default("text")
+  content         String
+  origin          String   @default("agent")
+  sent_by         String?
+  status          String   @default("sent")
+  created_at      DateTime @default(now())
+
+  @@index([tenant_id])
+  @@index([tenant_id, conversation_id])
+  @@index([wa_message_id])
+}
+
+model WhatsAppUsageLog {
+  id                    String   @id @default(cuid())
+  tenant_id             String
+  conversation_id       String?
+  company_id            String?
+  conversation_category String
+  origin                String
+  cost_usd              Decimal
+  created_at            DateTime @default(now())
+
+  @@index([tenant_id])
+}
+
+model WhatsAppAutomation {
+  id          String   @id @default(cuid())
+  tenant_id   String
+  name        String
+  trigger     String
+  conditions  Json?
+  template_id String
+  recipient   String
+  active      Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([tenant_id])
+  @@index([tenant_id, active])
+}

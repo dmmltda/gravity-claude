@@ -1,0 +1,15 @@
+// ARQUIVO GERADO — não editar manualmente.
+// Execute scripts/compose-simula-custo-schema.ts para regenerar.
+
+// Models do produto SimulaCusto serão adicionados na Onda 3.
+// Fragments de serviços de produto serão compostos aqui.
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("SIMULA_CUSTO_DATABASE_URL")
+}

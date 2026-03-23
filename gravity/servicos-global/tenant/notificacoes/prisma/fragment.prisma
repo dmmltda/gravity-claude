@@ -1,0 +1,23 @@
+// fragment.prisma — Notificacoes Service
+// Composto pelo Coordenador via scripts/compose-tenant-schema.ts
+// NÃO editar manualmente.
+
+model Notification {
+  id          String   @id @default(cuid())
+  tenant_id   String
+  user_id     String           // Clerk ID ou email direto
+  product_id  String?          // de qual produto veio
+  type        String           // mentioned | task-assigned | reminder | next-step | meeting-invite | meeting-summary | recording | gabi-summary
+  title       String?
+  message     String
+  read        Boolean  @default(false)
+  activity_id String?          // para navegação direta
+
+  created_at  DateTime @default(now())
+
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+  @@index([tenant_id, user_id])
+  @@index([tenant_id, user_id, read])
+  @@index([tenant_id, created_at])
+}

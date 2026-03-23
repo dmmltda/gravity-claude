@@ -1,0 +1,18 @@
+model FailedTenantAction {
+  id              String   @id @default(cuid())
+  service         String
+  action          String
+  payload         Json
+  tenant_id       String
+  user_id         String
+  idempotency_key String   @unique
+  status          String   @default("PENDING") // PENDING | PROCESSING | FAILED | COMPLETED
+  error_log       String?
+  attempts        Int      @default(0)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@index([tenant_id])
+  @@index([status, attempts])
+  @@index([tenant_id, status])
+}

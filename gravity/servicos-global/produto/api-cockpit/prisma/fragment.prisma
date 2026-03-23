@@ -1,0 +1,73 @@
+// fragment.prisma — api-cockpit
+// Serviço de produto: composto no schema de cada produto via compose-schema.js
+// Nunca editar schema.prisma diretamente
+
+model ApiToken {
+  id           String    @id @default(cuid())
+  tenant_id    String
+  product_id   String
+  name         String
+  token_hash   String    // SHA-256 do token — nunca plain text
+  prefix       String    // gv_live_sk_ | gv_test_sk_
+  scope        Json      // ["read"] | ["read","write"] | ["read","write","delete"]
+  rate_limit   Int       @default(60)
+  expires_at   DateTime?
+  revoked      Boolean   @default(false)
+  last_used_at DateTime?
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  usage_logs ApiUsageLog[]
+
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+}
+
+model ApiWebhook {
+  id          String    @id @default(cuid())
+  tenant_id   String
+  product_id  String
+  url         String
+  secret_hash String    // hash do secret HMAC — nunca plain text
+  events      Json      // ["simulacao.criada", "cotacao.aprovada", ...]
+  active      Boolean   @default(true)
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  deliveries WebhookDelivery[]
+
+  @@index([tenant_id, product_id])
+}
+
+model WebhookDelivery {
+  id           String    @id @default(cuid())
+  webhook_id   String
+  event        String
+  payload      Json
+  status_code  Int?
+  latency_ms   Int?
+  attempts     Int       @default(0)
+  delivered_at DateTime?
+  created_at   DateTime  @default(now())
+
+  webhook ApiWebhook @relation(fields: [webhook_id], references: [id], onDelete: Cascade)
+
+  @@index([webhook_id])
+}
+
+model ApiUsageLog {
+  id          String   @id @default(cuid())
+  tenant_id   String
+  product_id  String
+  token_id    String
+  endpoint    String
+  method      String
+  status_code Int
+  latency_ms  Int
+  created_at  DateTime @default(now())
+
+  token ApiToken @relation(fields: [token_id], references: [id], onDelete: Cascade)
+
+  @@index([tenant_id, product_id])
+  @@index([tenant_id, created_at])
+}

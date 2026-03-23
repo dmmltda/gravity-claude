@@ -1,0 +1,43 @@
+// fragment.prisma — Email Service
+// Composto pelo Coordenador via scripts/compose-tenant-schema.ts
+// NÃO editar manualmente.
+
+model EmailThread {
+  id         String         @id @default(uuid())
+  tenant_id  String
+  subject    String
+  sentiment  Float          @default(0)
+  status     String         @default("open")
+  messages   EmailMessage[]
+  created_at DateTime       @default(now())
+  updated_at DateTime       @updatedAt
+
+  @@index([tenant_id])
+  @@index([tenant_id, status])
+}
+
+model EmailMessage {
+  id               String      @id @default(uuid())
+  tenant_id        String
+  thread_id        String
+  thread           EmailThread @relation(fields: [thread_id], references: [id])
+  resend_id        String?     @unique
+  direction        String      // inbound | outbound
+  from             String
+  to               String
+  body             String      @db.Text
+  sent_at          DateTime    @default(now())
+  gabi_response    String?     @db.Text
+  gabi_confidence  Float?
+  dedup_key        String?
+  parent_email_id  String?
+  gabi_analysis    Json?
+  product_id       String?
+  user_id          String?
+
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+  @@index([tenant_id, user_id])
+  @@index([thread_id])
+  @@index([thread_id, direction])
+}

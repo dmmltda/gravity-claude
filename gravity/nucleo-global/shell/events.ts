@@ -1,0 +1,12 @@
+type Handler<T = unknown> = (payload: T) => void
+const listeners = new Map<string, Set<Handler>>()
+
+export function emit<T>(event: string, payload: T): void {
+  listeners.get(event)?.forEach((h) => h(payload as unknown))
+}
+
+export function on<T>(event: string, handler: Handler<T>): () => void {
+  if (!listeners.has(event)) listeners.set(event, new Set())
+  listeners.get(event)!.add(handler as Handler)
+  return () => listeners.get(event)?.delete(handler as Handler)
+}

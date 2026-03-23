@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "services": {
+    "configurador": {
+      "base": "/api/v1",
+      "description": "Serviço central de configuração — Clerk, multi-tenant, billing, permissões",
+      "endpoints": [
+        { "method": "POST", "path": "/auth/webhook", "description": "Webhook Clerk (user.created, user.deleted, organization.created)" },
+        { "method": "POST", "path": "/tenants", "description": "Criar tenant" },
+        { "method": "GET",  "path": "/tenants/:id", "description": "Buscar tenant por ID" },
+        { "method": "GET",  "path": "/tenants/:id/companies", "description": "Listar empresas do tenant" },
+        { "method": "POST", "path": "/companies/tenants/:tenantId/companies", "description": "Criar empresa no tenant" },
+        { "method": "GET",  "path": "/companies/:id", "description": "Buscar empresa por ID" },
+        { "method": "POST", "path": "/users/membership", "description": "Criar membership de usuário no tenant" },
+        { "method": "GET",  "path": "/users/tenants/:tenantId/users", "description": "Listar usuários do tenant" },
+        { "method": "POST", "path": "/users/:membershipId/enable", "description": "Habilitar usuário em uma empresa" },
+        { "method": "GET",  "path": "/billing/:tenantId/subscriptions", "description": "Listar assinaturas do tenant" },
+        { "method": "POST", "path": "/billing/subscribe", "description": "Criar assinatura de produto" }
+      ]
+    },
+    "configurador-internal": {
+      "base": "/api/internal",
+      "description": "Endpoints internos S2S do configurador — requer x-internal-key",
+      "endpoints": [
+        { "method": "GET", "path": "/check-access", "description": "Verificar acesso do usuário a um produto/empresa (S2S)" }
+      ]
+    }
+  }
+}

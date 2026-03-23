@@ -1,0 +1,6 @@
+export { Gabi } from './Gabi.js'
+export type { GabiProps, GabiRole } from './Gabi.js'
+export { createGabiRouter } from '../server/routes.js'
+export { assertGabiPermission } from '../server/services/permissions.js'
+export { executeGabiAction, buildActionContext } from '../server/services/audit.js'
+export type { GabiAction, GabiActionResult } from '../server/services/audit.js'

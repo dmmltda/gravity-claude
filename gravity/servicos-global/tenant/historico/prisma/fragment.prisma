@@ -1,0 +1,52 @@
+// servicos-global/tenant/historico/prisma/fragment.prisma
+// Logs são IMUTÁVEIS — sem updated_at, sem deleted_at, sem is_deleted
+
+model AuditLog {
+  id           String  @id @default(cuid())
+  tenant_id    String
+  product_id   String?           // qual produto gerou a ação
+
+  // Ator
+  actor_id     String?           // null = sistema/cron
+  actor_type   String  @default("user")  // user | gabi | system
+  actor_name   String
+
+  // Ação
+  action       String            // CRIAÇÃO | ALTERAÇÃO | EXCLUSÃO | ENVIO | RECEBIMENTO | EXPORTAÇÃO | LOGIN | CONFIGURAÇÃO | IA
+  entity       String            // chave do módulo (ex: empresa, email, atividade)
+  entity_label String            // nome legível (ex: Empresa, E-mail, Atividade)
+  entity_id    String?           // ID do registro afetado
+
+  description  String            // texto legível do que foi feito
+
+  // Diff — [{ field, label, before, after }]
+  diff         Json?
+
+  // Integridade
+  integrity_hash String?         // SHA256 do log — imutável após gravação
+
+  // Rastreabilidade de integrações externas
+  source_service String?         // serviço externo que originou a ação
+  triggered_by   String?         // userId que disparou o fluxo (≠ actor_id em jobs)
+  user_id        String?         // alias de isolamento — espelha triggered_by para índice obrigatório
+
+  // Referência para log de correção
+  related_log_id String?
+
+  // Contexto da requisição
+  ip_address   String?
+  user_agent   String?
+
+  // Sem updated_at — logs são IMUTÁVEIS
+  // Sem deleted_at — logs não têm soft delete
+  // Sem is_deleted — logs não podem ser ocultados
+  created_at   DateTime @default(now())
+
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+  @@index([tenant_id, user_id])
+  @@index([tenant_id, actor_id])
+  @@index([tenant_id, action])
+  @@index([tenant_id, entity])
+  @@index([tenant_id, created_at])
+}

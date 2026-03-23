@@ -1,0 +1,23 @@
+// fragment.prisma — Dashboard
+// Composto pelo Coordenador via scripts/compose-tenant-schema.ts
+// NÃO editar o schema.prisma diretamente
+
+model DashboardWidget {
+  id         String   @id @default(uuid())
+  tenant_id  String
+  widget_id  String
+  title      String
+  size       String   // sm | md | lg | full — validado na camada de aplicação
+  position   Int
+  product_id String?
+  permissions Json    @default("[]")
+  config      Json    @default("{}")
+  active      Boolean @default(true)
+  user_id     String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+  @@index([tenant_id, user_id])
+}

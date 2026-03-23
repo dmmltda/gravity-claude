@@ -1,0 +1,60 @@
+// fragment.prisma — Gabi AI (serviço de produto)
+// Composto no schema do produto via scripts/compose-schema.js
+// NÃO editar schema.prisma diretamente
+
+model GabiConversation {
+  id         String        @id @default(cuid())
+  tenant_id  String
+  product_id String?
+  user_id    String
+  title      String?
+  messages   GabiMessage[]
+  created_at DateTime      @default(now())
+  updated_at DateTime      @updatedAt
+
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+  @@index([tenant_id, user_id])
+}
+
+model GabiMessage {
+  id              String           @id @default(cuid())
+  conversation_id String
+  role            String           // 'user' | 'assistant' | 'system'
+  content         String
+  attachments     String?          // JSON array de metadados de arquivos
+  created_at      DateTime         @default(now())
+  conversation    GabiConversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+}
+
+model GabiUsageLog {
+  id                    String   @id @default(cuid())
+  tenant_id             String
+  product_id            String?
+  user_id               String
+  actor_type            String   @default("gabi")
+  action_taken          String
+  conversation_snapshot String   // JSON com contexto da conversa
+  created_at            DateTime @default(now())
+
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+  @@index([tenant_id, user_id])
+}
+
+model GabiSettings {
+  id                  String   @id @default(cuid())
+  tenant_id           String
+  product_id          String
+  monthly_limit_usd   Float    @default(50.0)
+  alert_at_80_sent    Boolean  @default(false)
+  alert_at_100_sent   Boolean  @default(false)
+  alert_reset_month   Int?     // mês (1-12) em que o anti-spam foi resetado
+  alert_reset_year    Int?     // ano do reset
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  @@unique([tenant_id, product_id])
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+}

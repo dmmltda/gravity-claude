@@ -1,0 +1,404 @@
+// ARQUIVO GERADO — não editar manualmente.
+// Execute scripts/compose-tenant-schema.ts para regenerar.
+
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("TENANT_DATABASE_URL")
+}
+
+
+// servicos-global/tenant/atividades/prisma/fragment.prisma
+// Composto pelo Coordenador via scripts/compose-tenant-schema.ts — não editar schema.prisma diretamente.
+
+model Activity {
+  id          String    @id @default(cuid())
+  tenant_id   String
+  product_id  String?
+  user_id     String
+
+  title       String
+  description String?
+  status      String    // pending | in_progress | done | cancelled
+
+  due_date    DateTime?
+
+  // Lembrete
+  reminder_at            DateTime?
+  reminder_sent          Boolean   @default(false)
+  reminder_whatsapp      Boolean   @default(false)
+
+  // Próximo passo
+  next_step                  String?
+  next_step_date             DateTime?
+  next_step_reminder_sent    Boolean   @default(false)
+
+  // WhatsApp de reunião
+  send_invite_whatsapp    Boolean   @default(false)
+  send_summary_whatsapp   Boolean   @default(false)
+  send_recording_whatsapp Boolean   @default(false)
+  recording_url           String?
+  recording_sent          Boolean   @default(false)
+
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  // Índices obrigatórios de tenant
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+  @@index([tenant_id, user_id])
+
+  // Índices de negócio
+  @@index([tenant_id, status])
+  @@index([tenant_id, due_date])
+}
+
+
+// servicos-global/tenant/cronometro/prisma/fragment.prisma
+// Composto pelo Coordenador via scripts/compose-tenant-schema.ts — não editar schema.prisma diretamente.
+
+model TimerSession {
+  id               String    @id @default(cuid())
+  tenant_id        String
+  user_id          String
+  activity_id      String
+  product_id       String?
+
+  // Dados da sessão
+  started_at       DateTime
+  ended_at         DateTime?
+  duration_minutes Int?      // null = timer ainda ativo
+
+  is_manual        Boolean   @default(false)
+
+  // Assunto e vínculo
+  subject          String?   // texto livre do assunto
+  linked_type      String?   // nf | meeting | process | custom
+  linked_id        String?   // ID do item vinculado
+  linked_label     String?   // label de exibição
+
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+  @@index([tenant_id, user_id])
+  @@index([tenant_id, activity_id])
+  @@index([tenant_id, user_id, started_at])
+}
+
+model TimerActive {
+  id                  String    @id @default(cuid())
+  tenant_id           String
+  user_id             String    @unique // um timer ativo por usuário
+  activity_id         String
+  product_id          String?
+  started_at          DateTime
+  paused_at           DateTime?
+  accumulated_seconds Int       @default(0) // segundos acumulados antes de pausas
+
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+  @@index([tenant_id, user_id])
+}
+
+
+// fragment.prisma — Email Service
+// Composto pelo Coordenador via scripts/compose-tenant-schema.ts
+// NÃO editar manualmente.
+
+model EmailThread {
+  id         String         @id @default(uuid())
+  tenant_id  String
+  subject    String
+  sentiment  Float          @default(0)
+  status     String         @default("open")
+  messages   EmailMessage[]
+  created_at DateTime       @default(now())
+  updated_at DateTime       @updatedAt
+
+  @@index([tenant_id])
+  @@index([tenant_id, status])
+}
+
+model EmailMessage {
+  id               String      @id @default(uuid())
+  tenant_id        String
+  thread_id        String
+  thread           EmailThread @relation(fields: [thread_id], references: [id])
+  resend_id        String?     @unique
+  direction        String      // inbound | outbound
+  from             String
+  to               String
+  body             String      @db.Text
+  sent_at          DateTime    @default(now())
+  gabi_response    String?     @db.Text
+  gabi_confidence  Float?
+  dedup_key        String?
+  parent_email_id  String?
+  gabi_analysis    Json?
+  product_id       String?
+  user_id          String?
+
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+  @@index([tenant_id, user_id])
+  @@index([thread_id])
+  @@index([thread_id, direction])
+}
+
+
+// fragment.prisma — WhatsApp
+// Composto pelo Coordenador em servicos-global/tenant/prisma/schema.prisma
+
+model WhatsAppConversation {
+  id                     String    @id @default(cuid())
+  tenant_id              String
+  wa_phone_number        String
+  status                 String    @default("open")
+  contact_id             String?
+  company_id             String?
+  contact_nome           String?
+  company_nome           String?
+  activity_id            String?
+  ai_enabled             Boolean   @default(false)
+  opened_at              DateTime  @default(now())
+  closed_at              DateTime?
+  gabi_temperatura       String?
+  gabi_temperatura_score Int?
+  gabi_resumo            String?
+  gabi_acoes_sugeridas   Json?
+
+  @@index([tenant_id])
+  @@index([tenant_id, status])
+  @@index([tenant_id, wa_phone_number])
+}
+
+model WhatsAppMessage {
+  id              String   @id @default(cuid())
+  tenant_id       String
+  conversation_id String
+  wa_message_id   String?  @unique
+  direction       String
+  content_type    String   @default("text")
+  content         String
+  origin          String   @default("agent")
+  sent_by         String?
+  status          String   @default("sent")
+  created_at      DateTime @default(now())
+
+  @@index([tenant_id])
+  @@index([tenant_id, conversation_id])
+  @@index([wa_message_id])
+}
+
+model WhatsAppUsageLog {
+  id                    String   @id @default(cuid())
+  tenant_id             String
+  conversation_id       String?
+  company_id            String?
+  conversation_category String
+  origin                String
+  cost_usd              Decimal
+  created_at            DateTime @default(now())
+
+  @@index([tenant_id])
+}
+
+model WhatsAppAutomation {
+  id          String   @id @default(cuid())
+  tenant_id   String
+  name        String
+  trigger     String
+  conditions  Json?
+  template_id String
+  recipient   String
+  active      Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([tenant_id])
+  @@index([tenant_id, active])
+}
+
+
+// fragment.prisma — Dashboard
+// Composto pelo Coordenador via scripts/compose-tenant-schema.ts
+// NÃO editar o schema.prisma diretamente
+
+model DashboardWidget {
+  id         String   @id @default(uuid())
+  tenant_id  String
+  widget_id  String
+  title      String
+  size       String   // sm | md | lg | full — validado na camada de aplicação
+  position   Int
+  product_id String?
+  permissions Json    @default("[]")
+  config      Json    @default("{}")
+  active      Boolean @default(true)
+  user_id     String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+  @@index([tenant_id, user_id])
+}
+
+
+// servicos-global/tenant/relatorios/prisma/fragment.prisma
+
+model SavedReport {
+  id         String  @id @default(cuid())
+  tenant_id  String
+  user_id    String
+  report_id  String           // ID do tipo de relatório base
+  product_id String?          // null = multi-produto (relatório unificado)
+  sources    Json    @default("[]")  // [{ productId, tableId, columns }]
+  name       String           // ex: "Empresas Ativas Sul"
+  filters    Json    @default("{}")  // filtros salvos
+  columns    Json    @default("[]")  // colunas visíveis e ordem
+  join_type  String  @default("left") // left | inner
+  is_shared  Boolean @default(false)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([tenant_id])
+  @@index([tenant_id, user_id])
+  @@index([tenant_id, report_id])
+  @@index([tenant_id, product_id])
+}
+
+model ReportSchedule {
+  id              String  @id @default(cuid())
+  tenant_id       String
+  saved_report_id String
+  frequency       String           // once|daily|weekly|monthly|custom
+  cron_expression String?
+  next_run_at     DateTime
+  channels        Json             // { email:[...], whatsapp:[...], notify:[...] }
+  format          String  @default("csv")  // csv|excel|json|xml|txt
+  active          Boolean @default(true)
+  last_run_at     DateTime?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@index([tenant_id])
+  @@index([active, next_run_at])
+}
+
+
+// servicos-global/tenant/historico/prisma/fragment.prisma
+// Logs são IMUTÁVEIS — sem updated_at, sem deleted_at, sem is_deleted
+
+model AuditLog {
+  id           String  @id @default(cuid())
+  tenant_id    String
+  product_id   String?           // qual produto gerou a ação
+
+  // Ator
+  actor_id     String?           // null = sistema/cron
+  actor_type   String  @default("user")  // user | gabi | system
+  actor_name   String
+
+  // Ação
+  action       String            // CRIAÇÃO | ALTERAÇÃO | EXCLUSÃO | ENVIO | RECEBIMENTO | EXPORTAÇÃO | LOGIN | CONFIGURAÇÃO | IA
+  entity       String            // chave do módulo (ex: empresa, email, atividade)
+  entity_label String            // nome legível (ex: Empresa, E-mail, Atividade)
+  entity_id    String?           // ID do registro afetado
+
+  description  String            // texto legível do que foi feito
+
+  // Diff — [{ field, label, before, after }]
+  diff         Json?
+
+  // Integridade
+  integrity_hash String?         // SHA256 do log — imutável após gravação
+
+  // Rastreabilidade de integrações externas
+  source_service String?         // serviço externo que originou a ação
+  triggered_by   String?         // userId que disparou o fluxo (≠ actor_id em jobs)
+  user_id        String?         // alias de isolamento — espelha triggered_by para índice obrigatório
+
+  // Referência para log de correção
+  related_log_id String?
+
+  // Contexto da requisição
+  ip_address   String?
+  user_agent   String?
+
+  // Sem updated_at — logs são IMUTÁVEIS
+  // Sem deleted_at — logs não têm soft delete
+  // Sem is_deleted — logs não podem ser ocultados
+  created_at   DateTime @default(now())
+
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+  @@index([tenant_id, user_id])
+  @@index([tenant_id, actor_id])
+  @@index([tenant_id, action])
+  @@index([tenant_id, entity])
+  @@index([tenant_id, created_at])
+}
+
+
+// fragment.prisma — Agendamento Service
+// Composto pelo Coordenador via scripts/compose-tenant-schema.ts
+// NÃO editar manualmente.
+
+model CalendarEvent {
+  id                 String   @id @default(cuid())
+  tenant_id          String
+  user_id            String
+  product_id         String?
+  title              String
+  description        String?
+  starts_at          DateTime
+  ends_at            DateTime
+  all_day            Boolean  @default(false)
+  type               String   // meeting | task | reminder | deadline | custom
+  linked_activity_id String?
+  recurrence         Json?
+  attendees          Json     @default("[]")
+  location           String?
+  color              String?
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+  @@index([tenant_id, user_id])
+  @@index([tenant_id, starts_at])
+  @@index([tenant_id, user_id, starts_at])
+}
+
+
+// fragment.prisma — Notificacoes Service
+// Composto pelo Coordenador via scripts/compose-tenant-schema.ts
+// NÃO editar manualmente.
+
+model Notification {
+  id          String   @id @default(cuid())
+  tenant_id   String
+  user_id     String           // Clerk ID ou email direto
+  product_id  String?          // de qual produto veio
+  type        String           // mentioned | task-assigned | reminder | next-step | meeting-invite | meeting-summary | recording | gabi-summary
+  title       String?
+  message     String
+  read        Boolean  @default(false)
+  activity_id String?          // para navegação direta
+
+  created_at  DateTime @default(now())
+
+  @@index([tenant_id])
+  @@index([tenant_id, product_id])
+  @@index([tenant_id, user_id])
+  @@index([tenant_id, user_id, read])
+  @@index([tenant_id, created_at])
+}
