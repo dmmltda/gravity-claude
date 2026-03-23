@@ -1,0 +1,20 @@
+{
+  "_comment": "UptimeRobot — configurar um monitor por serviço via dashboard ou API",
+  "_doc": "https://uptimerobot.com/api",
+  "interval_minutes": 5,
+  "alert_contacts": [],
+  "monitors": [
+    { "name": "Gravity — Configurador",   "url": "https://configurador.up.railway.app/health" },
+    { "name": "Gravity — Marketplace",    "url": "https://marketplace.up.railway.app" },
+    { "name": "Gravity — Atividades",     "url": "https://atividades.up.railway.app/health" },
+    { "name": "Gravity — Cronômetro",     "url": "https://cronometro.up.railway.app/health" },
+    { "name": "Gravity — Email",          "url": "https://email.up.railway.app/health" },
+    { "name": "Gravity — WhatsApp",       "url": "https://whatsapp.up.railway.app/health" },
+    { "name": "Gravity — Dashboard",      "url": "https://dashboard.up.railway.app/health" },
+    { "name": "Gravity — Relatórios",     "url": "https://relatorios.up.railway.app/health" },
+    { "name": "Gravity — Histórico",      "url": "https://historico.up.railway.app/health" },
+    { "name": "Gravity — Notificações",   "url": "https://notificacoes.up.railway.app/health" },
+    { "name": "Gravity — Agendamento",    "url": "https://agendamento.up.railway.app/health" },
+    { "name": "Gravity — SimulaCusto",    "url": "https://simula-custo.up.railway.app/health" }
+  ]
+}
