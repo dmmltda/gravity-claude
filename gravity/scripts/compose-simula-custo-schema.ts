@@ -4,10 +4,18 @@ import path from 'path'
 const ROOT = path.resolve(process.cwd())
 const BASE_PATH = path.join(ROOT, 'produtos/simula-custo/server/prisma/schema.base.prisma')
 const OUTPUT_PATH = path.join(ROOT, 'produtos/simula-custo/server/prisma/schema.prisma')
-const HELPDESK_FRAGMENT = path.join(
-  ROOT,
-  'servicos-global/produto/helpdesk/prisma/fragment.prisma'
-)
+
+// Fragments a incluir — primeiro o do próprio produto, depois serviços de produto
+const FRAGMENT_PATHS: Array<{ name: string; path: string }> = [
+  {
+    name: 'simula-custo',
+    path: path.join(ROOT, 'produtos/simula-custo/server/prisma/fragment.prisma'),
+  },
+  {
+    name: 'helpdesk',
+    path: path.join(ROOT, 'servicos-global/produto/helpdesk/prisma/fragment.prisma'),
+  },
+]
 
 const base = fs.readFileSync(BASE_PATH, 'utf8')
 
@@ -16,12 +24,14 @@ const skipped: string[] = []
 
 const fragments: string[] = []
 
-if (fs.existsSync(HELPDESK_FRAGMENT)) {
-  fragments.push(fs.readFileSync(HELPDESK_FRAGMENT, 'utf8'))
-  included.push('helpdesk')
-} else {
-  console.warn(`[compose-simula-custo-schema] Fragment não encontrado (pulando): ${HELPDESK_FRAGMENT}`)
-  skipped.push('helpdesk')
+for (const { name, path: fragmentPath } of FRAGMENT_PATHS) {
+  if (fs.existsSync(fragmentPath)) {
+    fragments.push(fs.readFileSync(fragmentPath, 'utf8'))
+    included.push(name)
+  } else {
+    console.warn(`[compose-simula-custo-schema] Fragment não encontrado (pulando): ${fragmentPath}`)
+    skipped.push(name)
+  }
 }
 
 const header = `// ARQUIVO GERADO — não editar manualmente.\n// Execute scripts/compose-simula-custo-schema.ts para regenerar.\n`

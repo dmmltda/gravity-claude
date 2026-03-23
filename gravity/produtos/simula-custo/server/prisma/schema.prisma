@@ -13,3 +13,92 @@ datasource db {
   provider = "postgresql"
   url      = env("SIMULA_CUSTO_DATABASE_URL")
 }
+
+// Fragment do produto SimulaCusto — composto pelo script compose-simula-custo-schema.ts
+// NÃO editar schema.prisma diretamente.
+
+enum TipoTaxa {
+  origem
+  destino
+}
+
+model Estimativa {
+  id                 String         @id @default(cuid())
+  tenant_id          String
+  user_id            String
+  numero_sequencial  String         @unique
+  descricao          String
+  ncm                String
+  incoterm           String
+  moeda              String
+  valor_produto      Float
+  valor_frete        Float
+  valor_seguro       Float
+  ptax_utilizado     Float
+  valor_aduaneiro    Float          @default(0)
+  ii                 Float          @default(0)
+  ipi                Float          @default(0)
+  pis                Float          @default(0)
+  cofins             Float          @default(0)
+  icms               Float          @default(0)
+  fcp                Float          @default(0)
+  taxa_siscomex      Float          @default(0)
+  landed_cost_brl    Float          @default(0)
+  status             String         @default("rascunho")
+  created_at         DateTime       @default(now())
+  updated_at         DateTime       @updatedAt
+
+  taxas              TaxaEstimativa[]
+
+  @@index([tenant_id])
+  @@index([tenant_id, status])
+  @@index([tenant_id, ncm])
+}
+
+model TaxaEstimativa {
+  id            String     @id @default(cuid())
+  estimativa_id String
+  tipo          TipoTaxa
+  nome          String
+  moeda         String
+  valor         Float
+
+  estimativa    Estimativa @relation(fields: [estimativa_id], references: [id], onDelete: Cascade)
+}
+
+model CacheAliquota {
+  ncm             String   @id
+  aliquota_ii     Float
+  aliquota_ipi    Float
+  aliquota_pis    Float
+  aliquota_cofins Float
+  fonte           String
+  updated_at      DateTime @updatedAt
+}
+
+model CacheCambio {
+  moeda        String   @id
+  ptax_venda   Float
+  ptax_compra  Float
+  data_cotacao DateTime
+  updated_at   DateTime @updatedAt
+}
+
+model FailedTenantAction {
+  id              String   @id @default(cuid())
+  service         String
+  action          String
+  payload         Json
+  tenant_id       String
+  user_id         String
+  idempotency_key String   @unique
+  status          String   @default("PENDING")
+  error_log       String?
+  attempts        Int      @default(0)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@index([tenant_id])
+  @@index([status, attempts])
+  @@index([tenant_id, status])
+}
