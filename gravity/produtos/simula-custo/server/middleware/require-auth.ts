@@ -24,6 +24,14 @@ export function requireAuth(
   _res: Response,
   next: NextFunction
 ): void {
+  // Em desenvolvimento, injeta tenant e usuário fixos sem validar token
+  if (process.env['NODE_ENV'] === 'development') {
+    const r = req as TenantRequest
+    r.tenantId = 'tenant-dev-local'
+    r.auth    = { userId: 'user-dev-local' }
+    return next()
+  }
+
   const tenantId = req.headers['x-tenant-id']
   if (!tenantId || typeof tenantId !== 'string') {
     return next(new AppError(401, 'UNAUTHORIZED', 'Header x-tenant-id ausente'))

@@ -6,8 +6,10 @@ export function requireInternalKey(
   _res: Response,
   next: NextFunction
 ): void {
+  if (process.env['NODE_ENV'] === 'development') return next()
+
   const key = req.headers['x-internal-key']
-  if (key !== process.env.INTERNAL_SERVICE_KEY) {
+  if (key !== process.env['INTERNAL_SERVICE_KEY']) {
     return next(new AppError(403, 'FORBIDDEN', 'Acesso negado'))
   }
   next()
