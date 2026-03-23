@@ -176,7 +176,10 @@ export function DetalheEstimativa() {
                   <td style={{ padding: '0.75rem 1rem', fontSize: 'var(--text-small)', color: linha.destaque ? 'var(--color-text-primary)' : 'var(--color-text-secondary)', fontWeight: linha.destaque ? 700 : 400 }}>
                     {linha.label}
                   </td>
-                  <td style={{ padding: '0.75rem 1rem', textAlign: 'right', fontSize: 'var(--text-small)', fontWeight: 700, color: linha.destaque ? 'var(--color-accent)' : 'var(--color-text-primary)' }}>
+                  <td
+                    data-testid={linha.destaque ? 'landed-cost' : undefined}
+                    style={{ padding: '0.75rem 1rem', textAlign: 'right', fontSize: 'var(--text-small)', fontWeight: 700, color: linha.destaque ? 'var(--color-accent)' : 'var(--color-text-primary)' }}
+                  >
                     {BRL.format(linha.valor)}
                   </td>
                 </tr>

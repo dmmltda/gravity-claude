@@ -14,17 +14,26 @@ test('estimativa básica — fluxo completo', async ({ page }) => {
   // 3. Nova estimativa
   await page.click('text=Nova Estimativa')
 
-  // 4. Preenche formulário
-  await page.fill('[name="ncm"]', '84833000')
-  await page.fill('[name="descricao"]', 'Teste E2E')
-  await page.fill('[name="quantidade"]', '100')
+  // 4. Preenche aba Dados
+  await page.fill('[data-testid="input-descricao"]', 'Teste E2E')
 
-  // 5. Calcula
-  await page.click('text=Calcular')
+  // 5. Muda para aba Produto
+  await page.click('text=2. Produto')
+  await page.fill('[data-testid="input-ncm"]', '84833000')
 
-  // 6. Verifica resultado
+  // Aguarda PTAX ser preenchido automaticamente
+  await page.waitForTimeout(800)
+
+  // Preenche valor do produto (necessário para habilitar botão calcular)
+  await page.fill('input[type="number"]', '1000')
+
+  // 6. Calcula
+  await page.click('[data-testid="btn-calcular"]')
+
+  // 7. Verifica resultado na página de detalhe
+  await page.waitForURL('**/estimativas/**')
   await expect(page.locator('[data-testid="landed-cost"]')).toBeVisible()
 
-  // 7. Verifica status
+  // 8. Verifica status
   await expect(page.locator('text=criada')).toBeVisible()
 })

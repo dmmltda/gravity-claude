@@ -76,14 +76,14 @@ export function createTenantProxy(options: TenantProxyOptions): RequestHandler {
         clearTimeout(timeoutHandle)
       }
 
-      if (!upstream.ok) {
-        throw new AppError(502, 'UPSTREAM_ERROR', 'Serviço de tenant indisponível')
-      }
-
       const body = await upstream.text()
       const contentType = upstream.headers.get('content-type') ?? 'application/json'
 
-      res.status(upstream.status).set('content-type', contentType)
+      // Repassa o status do upstream: 4xx chegam como 4xx ao cliente;
+      // 5xx do upstream viram 502 para indicar falha no serviço de tenant.
+      const status = upstream.status >= 500 ? 502 : upstream.status
+
+      res.status(status).set('content-type', contentType)
 
       if (body.length > 0) {
         res.send(body)
